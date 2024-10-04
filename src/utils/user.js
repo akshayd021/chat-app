@@ -101,7 +101,7 @@ export const chatData = [
         timestamp: "2024-10-01T10:03:00",
     },
     {
-        id: 3,
+        id: 12,
         sender: "User 1",
         message: "Doing well, just working on a project.",
         timestamp: "2024-10-01T10:03:00",
@@ -113,7 +113,7 @@ export const chatData = [
         timestamp: "2024-10-01T10:05:15",
     },
     {
-        id: 3,
+        id: 13,
         sender: "User 1",
         message: "Doing well, just working on a project.",
         timestamp: "2024-10-01T10:03:00",
@@ -149,7 +149,7 @@ export const chatData = [
         timestamp: "2024-10-01T10:10:50",
     },
     {
-        id: 9,
+        id: 19,
         sender: "User 1",
         message: "Looking  to  it when it's done!",
         timestamp: "2024-10-01T10:10:50",
@@ -161,7 +161,7 @@ export const chatData = [
         timestamp: "2024-10-01T10:10:50",
     },
     {
-        id: 10,
+        id: 110,
         sender: "User 2",
         message: " forward to seeing it when it's done!",
         timestamp: "2024-10-01T10:10:50",

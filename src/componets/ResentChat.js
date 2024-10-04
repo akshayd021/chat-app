@@ -6,16 +6,16 @@ import { users } from '@/utils/user';
 const ResentChat = ({setChat,setShowChat}) => {
     return (
         <div className=" mx-auto ">
-            <div className="mb-4">
+            <div className="my-3">
                 <h3 className="text-lg font-semibold text-text">Resent Chat</h3>
             </div>
-            <div className="overflow-auto scrollbar-hide h-[70vh]">
+            <div className="overflow-auto scrollbar-hide h-[73vh]">
                 <div className="items-center gap-3">
                     {users?.map((user, i) => (
                         <div
                             key={i}
                             onClick={() =>{ setChat(user)
-                                setShowChat(false)
+                                setShowChat(true)
                             }}
                             className="relative cursor-pointer flex items-center my-1 rounded-md border-b shadow-sm p-2"
                         >
