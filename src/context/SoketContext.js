@@ -11,7 +11,7 @@ export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        const newSocket = io('http://localhost:5000'); // Your server URL
+        const newSocket = io('http://192.168.29.219:5000'); // Your server URL
         setSocket(newSocket);
 
         return () => {

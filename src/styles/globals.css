@@ -10,6 +10,16 @@
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+.wrap-text {
+  overflow-wrap: break-word !important; /* Ensures long words break */
+  word-wrap: break-word !important; /* Fallback for older browsers */
+  white-space: normal !important; /* Allows text to wrap onto the next line */
+}
+
+.word-wrap {
+  word-wrap: break-word !important; /* For older browsers */
+  overflow-wrap: break-word !important; /* For modern browsers */
+}
 
 .scroll-smooth {
   scroll-behavior: smooth;
