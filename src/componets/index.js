@@ -1,3 +1,3 @@
 import ResentChat from "./ResentChat";
-
-export { ResentChat }
+import ImageModal from "./ImageModel";
+export { ResentChat, ImageModal }

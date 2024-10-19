@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import axios from 'axios';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/context/SoketContext'; // Import your socket context
 
@@ -11,6 +11,7 @@ const UploadImage = () => {
     const [preview, setPreview] = useState('');
     const { authUser } = useAuth();
     const { socket } = useSocket(); // Get the socket instance
+    const [user, setUser] = useState([])
 
     const [message, setMessage] = useState('');
 
@@ -28,6 +29,20 @@ const UploadImage = () => {
         setMessage('');
     };
 
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get(`http://192.168.29.219:5000/api/get-user/${id}`);
+                setUser(response.data);
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        };
+
+        fetchData();
+    }, [id]);
+    console.log(user)
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -56,7 +71,7 @@ const UploadImage = () => {
 
             setMessage(response?.data?.message);
             console.log('Uploaded image URL:', imageUrl);
-            handleDelete(); // Clear the preview and image after successful upload
+            handleDelete();
 
         } catch (error) {
             console.error(error);
@@ -76,7 +91,7 @@ const UploadImage = () => {
                 />
                 {preview && (
                     <div className="relative mb-4">
-                        <img src={preview} alt="Preview" className="w-64 h-64 object-cover rounded-full shadow" />
+                        <img src={authUser?.image} alt="Preview" className="w-64 h-64 object-cover rounded-full shadow" />
                         <button
                             type="button"
                             onClick={handleDelete}
@@ -86,7 +101,7 @@ const UploadImage = () => {
                         </button>
                     </div>
                 )}
-
+                {console.log(authUser, "au")}
                 <p className="my-4 text-text text-lg text-center font-semibold"> <span className="text-black">User Name :</span> {authUser?.username} </p>
                 <button
                     disabled={!image}

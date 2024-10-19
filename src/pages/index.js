@@ -1,6 +1,6 @@
 import { HiSearch } from 'react-icons/hi';
-import { FaArrowLeft, FaCamera, FaPhotoVideo, FaPlus } from "react-icons/fa";
-import { FiSend } from "react-icons/fi";
+import { FaArrowLeft, FaPlus } from "react-icons/fa";
+import { FiSend, FiSettings } from "react-icons/fi";
 import { useState, useEffect } from 'react';
 import { MdAddCall, MdVideoCall, MdOutlineMoreVert, MdEmojiEmotions } from "react-icons/md";
 import { useScreen } from '@/context/ScreenContext';
@@ -11,6 +11,8 @@ import moment from 'moment';
 import { useRouter } from 'next/router';
 import { ResentChat } from '@/componets';
 import Message from '@/componets/Message';
+import EmojiPicker from 'emoji-picker-react';
+
 
 export default function Home({ onSelectUser }) {
   const { isDesktop } = useScreen();
@@ -37,49 +39,49 @@ export default function Home({ onSelectUser }) {
   };
 
 
- const uploadImage = async () => {
+  const uploadImage = async () => {
     if (!selectedFile) return;
 
     const formData = new FormData();
     formData.append('image', selectedFile);
 
     try {
-        const response = await axios.post('http://192.168.29.219:5000/api/img', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+      const response = await axios.post('http://192.168.29.219:5000/api/img', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-        const imageUrl = response.data.url;
+      const imageUrl = response.data.url;
 
-        const newMessage = {
-            senderId: authUser.id,
-            receiverId,
-            message: imageUrl,
-            timestamp: new Date().toISOString(),
-            seenBy: [],
-            type: 'image', // Set the type to 'image'
-        };
+      const newMessage = {
+        senderId: authUser.id,
+        receiverId,
+        message: imageUrl,
+        timestamp: new Date().toISOString(),
+        seenBy: [],
+        type: 'image', // Set the type to 'image'
+      };
 
-        // Send the message through the socket
-        socket.emit('send-message', newMessage);
+      // Send the message through the socket
+      socket.emit('send-message', newMessage);
 
-        // Optionally, add the new message to your local state
-        setMessages((prev) => [...prev, newMessage]);
-        setLastMessagesMap((prev) => ({
-            ...prev,
-            [receiverId]: {
-                ...prev[receiverId],
-                unseenCount: (prev[receiverId]?.unseenCount || 0) + 1,
-            },
-        }));
+      // Optionally, add the new message to your local state
+      setMessages((prev) => [...prev, newMessage]);
+      setLastMessagesMap((prev) => ({
+        ...prev,
+        [receiverId]: {
+          ...prev[receiverId],
+          unseenCount: (prev[receiverId]?.unseenCount || 0) + 1,
+        },
+      }));
 
-        setSelectedFile(null);
-        toggleModal();
+      setSelectedFile(null);
+      toggleModal();
     } catch (error) {
-        console.error('Error uploading image:', error);
+      console.error('Error uploading image:', error);
     }
-};
+  };
 
 
 
@@ -252,24 +254,25 @@ export default function Home({ onSelectUser }) {
 
     setMessage('');
   };
+  console.log(message, ",esg")
 
   const fetchMessageHistory = async (userId) => {
     if (!authUser || !userId) return;
 
     try {
-        const response = await axios.get(`http://192.168.29.219:5000/api/messages/history/${authUser.id}/${userId}`);
-        const fetchedMessages = response.data.map(msg => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-        }));
-        console.log('Fetched messages:', fetchedMessages); // Check the structure here
+      const response = await axios.get(`http://192.168.29.219:5000/api/messages/history/${authUser.id}/${userId}`);
+      const fetchedMessages = response.data.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp),
+      }));
+      console.log('Fetched messages:', fetchedMessages); // Check the structure here
 
-        setMessages(fetchedMessages);
-        await markMessagesAsSeen(userId);
+      setMessages(fetchedMessages);
+      await markMessagesAsSeen(userId);
     } catch (error) {
-        console.error('Failed to load message history', error);
+      console.error('Failed to load message history', error);
     }
-};
+  };
 
 
   useEffect(() => {
@@ -307,6 +310,45 @@ export default function Home({ onSelectUser }) {
     }
   };
 
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleOptionClick = (option) => {
+    if (option === 'logout') {
+      localStorage.clear();
+      window.location.reload();
+    }
+    else {
+      router.push(`/profile/${authUser?.id}`)
+    }
+    setIsOpen(false);
+  };
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  // Toggle the emoji picker modal
+  const toggleEmojiPicker = () => {
+    setIsEmojiPickerOpen((prev) => !prev);
+  };
+  const handleEmojiClick = (event, emojiObject) => {
+    if (emojiObject && emojiObject.emoji) {
+      setMessage((prev) => prev + emojiObject.emoji); // Append emoji to message
+      console.log('Emoji added:', emojiObject.emoji); // Debugging log
+    } else {
+      console.error('Emoji object is undefined or invalid:', emojiObject);
+    }
+    setIsEmojiPickerOpen(false); // Close the emoji picker after selecting
+  };
+
+  // const sendMessage = () => {
+  //     // Logic to send the message
+  //     console.log("Sending message:", message);
+  //     setMessage(''); // Clear the input after sending
+  // };
+
 
   return (
     <div>
@@ -330,18 +372,31 @@ export default function Home({ onSelectUser }) {
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl my-3 text-text font-semibold">Chats</h2>
                   {authUser?.id && (
-                    <p
-                      className="inine-flex underline text-sm cursor-pointer mt-2 text-red-500"
-                      onClick={() => {
-                        localStorage.clear();
-                        window.location.reload();
-                      }}
-                    >
-                      Log Out
-                    </p>
+                    <div className="relative">
+                      <p className="inline-flex underline text-sm cursor-pointer mt-2" onClick={toggleDropdown}>
+                        <FiSettings className="text-xl" />
+                      </p>
+
+                      {isOpen && (
+                        <div className="absolute mr-12 mt-2 w-48 bg-white border rounded shadow-lg z-50">
+                          <p
+                            className="px-4 py-2 cursor-pointer hover:bg-gray-200"
+                            onClick={() => handleOptionClick('addProfile')}
+                          >
+                            Add Profile
+                          </p>
+                          <p
+                            className="px-4 py-2 cursor-pointer hover:bg-gray-200"
+                            onClick={() => handleOptionClick('logout')}
+                          >
+                            Logout
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-                <p onClick={() => { router.push(`/profile/${authUser?.id}`) }}>Add Profile</p>
+
                 <div className="flex items-center border-2 mb-3 lg:mb-0 relative bg-white rounded-md w-full">
                   <input
                     type="text"
@@ -433,10 +488,19 @@ export default function Home({ onSelectUser }) {
                               <p className="text-emerald-500 text-sm">Online</p>
                             ) : (
                               <p className="text-gray-500 text-[12px]">
-                                {chat?.lastSeen && moment(chat?.lastSeen).isSame(new Date(), 'day')
-                                  ? `Last seen at ${moment(chat?.lastSeen).format('hh:mm A')}`
-                                  : chat?.lastSeen ? moment(chat?.lastSeen).format('hh:mm A', 'MMM D') : 'Online'}
+                                {chat?.lastSeen ? (
+                                  moment(chat?.lastSeen).isSame(new Date(), 'day') ? (
+                                    `Last seen at ${moment(chat?.lastSeen).format('hh:mm A')}`
+                                  ) : moment(chat?.lastSeen).isSame(moment().subtract(1, 'day'), 'day') ? (
+                                    'Last seen yesterday'
+                                  ) : (
+                                    `Last seen on ${moment(chat?.lastSeen).format('MMM D, hh:mm A')}`
+                                  )
+                                ) : (
+                                  'Online'
+                                )}
                               </p>
+
                             )}
                           </div>
                         </div>
@@ -454,14 +518,17 @@ export default function Home({ onSelectUser }) {
 
                     <div className="absolute bottom-0 bg-[#d8dbe0] py-2 w-full">
                       <div className="text-black flex items-center gap-5 px-4">
-                        <MdEmojiEmotions className="text-xl cursor-pointer" />
+                        <MdEmojiEmotions
+                          className="text-xl cursor-pointer"
+                          onClick={toggleEmojiPicker}
+                        />
                         <div className="flex items-center relative bg-white rounded-md w-full">
                           <input
                             type="text"
                             value={message}
                             onChange={(e) => {
                               setMessage(e.target.value);
-                              handleTyping();
+                              handleTyping(); // Ensure typing is handled
                             }}
                             placeholder="Type a message..."
                             className="py-2 pl-4 w-[92%] text-[14px] outline-none rounded-md"
@@ -478,11 +545,22 @@ export default function Home({ onSelectUser }) {
                             onClick={toggleModal}
                           />
 
+                          {isEmojiPickerOpen && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                              <div className="bg-white rounded-lg p-4">
+                                <EmojiPicker onEmojiClick={handleEmojiClick} />
+                                <button onClick={toggleEmojiPicker} className="mt-2 text-blue-500">
+                                  Close
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
                           {isModalOpen && (
                             <div className="fixed bottom-5 right-3 inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-                              <div className="bg-white p-6 rounded-lg shadow-lg w-[20vw] mx-auto z-60">
-                                <button onClick={toggleModal} className="mt-4 bg-blue-500 text-white py-2 px-4 absolute right-1 top-1 rounded hover:bg-blue-600">
-                                  Close
+                              <div className="bg-white relative p-6 rounded-lg shadow-lg w-[20vw] mx-auto z-60">
+                                <button onClick={toggleModal} className="mt-4 text-blue-500 font-bold py-2 px-4 absolute -right-2 -top-5 rounded">
+                                  X
                                 </button>
                                 <h2 className="text-sm font-semibold">Upload an Image</h2>
                                 <input type="file" accept="image/*" onChange={handleFileChange} className="mt-2" />
